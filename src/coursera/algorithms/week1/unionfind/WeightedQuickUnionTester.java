@@ -1,5 +1,7 @@
 package coursera.algorithms.week1.unionfind;
 
+import coursera.algorithms.Util;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -69,8 +71,7 @@ public class WeightedQuickUnionTester {
   }
 
   private static int maxDepth(int size) {
-    double d = Math.log(size) / Math.log(2);
-    return (int)Math.ceil(d);
+    return (int)Math.ceil(Util.lg(size));
   }
   
   private static String checkMaxDepth(int[] data) {
