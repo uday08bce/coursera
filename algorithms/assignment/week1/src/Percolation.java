@@ -13,7 +13,8 @@ public class Percolation {
   private static final String ROW_ROLE_NAME    = "row";
   private static final String COLUMN_ROLE_NAME = "column";
   
-  private final WeightedQuickUnionUF data;
+  private final WeightedQuickUnionUF percolationData;
+  private final WeightedQuickUnionUF fullnessData;
   private final boolean[]            openStates;
   private final int                  bottomSiteIndex;
   private final int                  gridSideLength;
@@ -40,7 +41,8 @@ public class Percolation {
       ));
     }
     
-    data = new WeightedQuickUnionUF(bottomSiteIndex + 1);
+    percolationData = new WeightedQuickUnionUF(bottomSiteIndex + 1);
+    fullnessData = new WeightedQuickUnionUF(bottomSiteIndex);
     openStates = new boolean[bottomSiteIndex + 1];
     openStates[0] = true;
     openStates[bottomSiteIndex] = true;
@@ -66,7 +68,7 @@ public class Percolation {
     
     // Connect to the top site.
     if (i == 1) {
-      data.union(0, dataIndex);
+      unionIfPossible(0, j);
     } else {
       unionIfPossible(toDataIndex(i - 1, j), dataIndex);
     }
@@ -78,14 +80,14 @@ public class Percolation {
 
     // Connect to the bottom site.
     if (i == gridSideLength) {
-      data.union(bottomSiteIndex, dataIndex);
+      percolationData.union(bottomSiteIndex, dataIndex);
     }
     else {
       unionIfPossible(toDataIndex(i + 1, j), dataIndex);
     }
     
-    // Connect to the right site.
-    if (j > 0) {
+    // Connect to the left site.
+    if (j > 1) {
       unionIfPossible(dataIndex - 1, dataIndex);
     }
   }
@@ -97,8 +99,13 @@ public class Percolation {
    * @param target     target side index
    */
   private void unionIfPossible(int neighbour, int target) {
-    if (openStates[neighbour]) {
-      data.union(neighbour, target);
+    if (!openStates[neighbour]) {
+      return;
+    }
+    percolationData.union(neighbour, target);
+
+    if (neighbour < bottomSiteIndex) {
+      fullnessData.union(neighbour, target);
     }
   }
   
@@ -124,18 +131,18 @@ public class Percolation {
   public boolean isFull(int i, int j) {
     checkCellArgument(i, IS_FULL_OPERATION_NAME, ROW_ROLE_NAME);
     checkCellArgument(j, IS_FULL_OPERATION_NAME, COLUMN_ROLE_NAME);
-    return data.connected(0, toDataIndex(i, j));
+    return fullnessData.connected(0, toDataIndex(i, j));
   }
   
   private void checkCellArgument(int arg, String operationName, String argRole) {
-    if (arg < 0) {
-      throw new IllegalArgumentException(String.format(
+    if (arg <= 0) {
+      throw new IndexOutOfBoundsException(String.format(
         "Can't perform Percolation.%s() operation. Reason: given %s is too low "
         + "(%d). Minimum allowed value is 1", operationName, argRole, arg
       ));
     }
     if (arg > gridSideLength) {
-      throw new IllegalArgumentException(String.format(
+      throw new IndexOutOfBoundsException(String.format(
         "Can't perform Percolation.%s() operation. Reason: given %s is too big "
         + "(%d). Maximum allowed value is %d",
         operationName, argRole, arg, gridSideLength
@@ -151,7 +158,7 @@ public class Percolation {
   
   public boolean percolates() {
     if (!systemPercolates) {
-      systemPercolates = data.connected(0, bottomSiteIndex);
+      systemPercolates = percolationData.connected(0, bottomSiteIndex);
     }
     return systemPercolates;
   }
