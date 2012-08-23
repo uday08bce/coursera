@@ -25,4 +25,14 @@ public class Util {
     final long shifted = Math.round(num * magnitude);
     return shifted / magnitude;
   }
+
+  public static <T extends Comparable<T>> boolean less(T first, T second) {
+    return first.compareTo(second) < 0;
+  }
+
+  public static <T> void swap(T[] data, int i, int j) {
+    T tmp = data[i];
+    data[i] = data[j];
+    data[j] = tmp;
+  }
 }
