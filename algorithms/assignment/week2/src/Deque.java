@@ -6,12 +6,11 @@ import java.util.NoSuchElementException;
  * @author Denis Zhdanov
  * @since 8/23/12 4:34 PM
  */
-@SuppressWarnings("unchecked")
 public class Deque<Item> implements Iterable<Item> {
   
   private static final int INITIAL_CAPACITY = 4;
 
-  private Item[] data = (Item[])new Object[INITIAL_CAPACITY];
+  private Item[] data = (Item[]) new Object[INITIAL_CAPACITY];
   /** Points to the first element. */
   private int head = -1;
   /** Points to the last element. */
@@ -42,7 +41,8 @@ public class Deque<Item> implements Iterable<Item> {
     
     version++;
     if (isEmpty()) {
-      head = tail = 0;
+      head = 0;
+      tail = 0;
       data[head] = item;
       return;
     }
@@ -52,7 +52,8 @@ public class Deque<Item> implements Iterable<Item> {
       return;
     }
     else if (head == 0 && tail < data.length - 1) {
-      data[head = data.length - 1] = item;
+      head = data.length - 1;
+      data[head] = item;
       return;
     }
     resize(data.length * 2);
@@ -73,7 +74,8 @@ public class Deque<Item> implements Iterable<Item> {
       return;
     }
     else if (head > 0 && tail >= head) {
-      data[tail = 0] = item;
+      tail = 0;
+      data[0] = item;
       return;
     }
     resize(data.length * 2);
@@ -88,7 +90,8 @@ public class Deque<Item> implements Iterable<Item> {
     data[head] = null;
     if (head == tail) {
       // The deque is empty now.
-      head = tail = -1;
+      head = -1;
+      tail = -1;
     }
     else if (head == data.length - 1) {
       head = 0;
@@ -108,7 +111,8 @@ public class Deque<Item> implements Iterable<Item> {
     data[tail] = null;
     if (head == tail) {
       // The deque is empty now.
-      head = tail = -1;
+      tail = -1;
+      head = -1;
     }
     else if (tail > 0) {
       tail--;
@@ -127,11 +131,12 @@ public class Deque<Item> implements Iterable<Item> {
   }
 
   private void resize(int newSize) {
-    Item[] newData = (Item[])new Object[newSize];
+    Item[] newData = (Item[]) new Object[newSize];
     int newStartOffset = (newSize - size()) / 2; 
     if (tail < head) {
       System.arraycopy(data, head, newData, newStartOffset, data.length - head);
-      System.arraycopy(data, 0, newData, newStartOffset + data.length - head, tail + 1);
+      System.arraycopy(data, 0, newData, newStartOffset + data.length - head,
+                       tail + 1);
     }
     else {
       System.arraycopy(data, head, newData, newStartOffset, tail - head + 1);
