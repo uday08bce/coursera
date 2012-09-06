@@ -32,9 +32,7 @@ public class Brute {
             if (c1 == c.compare(points[k], points[l])) {
               StdOut.printf("%s -> %s -> %s -> %s%n", points[i], points[j],
                             points[k], points[l]);
-              points[i].drawTo(points[j]);
-              points[j].drawTo(points[k]);
-              points[k].drawTo(points[l]);
+              points[i].drawTo(points[l]);
             }
           }
         }
