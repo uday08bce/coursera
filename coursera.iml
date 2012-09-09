@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/algorithms/assignment/week2/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/algorithms/assignment/week2/test" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/algorithms/assignment/week3/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/algorithms/assignment/week4/src" isTestSource="false" />
     </content>
     <orderEntry type="jdk" jdkName="IDEA jdk" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
