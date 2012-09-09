@@ -6,21 +6,17 @@ import java.util.Arrays;
  */
 public class Board {
   
-  private final Board goal;
   private final char[][] blocks;
-  private final int moves;
   
   private int hammingValue = -1;
   private int manhattanValue = -1;
 
   public Board(int[][] blocks) {
-    this(toCharArray(blocks), 0, buildGoal(blocks.length));
+    this(toCharArray(blocks));
   }
 
-  private Board(char[][] blocks, int moves, Board goal) {
+  private Board(char[][] blocks) {
     this.blocks = blocks;
-    this.moves = moves;
-    this.goal = goal;
   }
 
   private static char[][] toCharArray(int[][] data) {
@@ -36,30 +32,23 @@ public class Board {
     return result;
   }
   
-  private static Board buildGoal(int dimension) {
-    char[][] data = new char[dimension][];
-    for (int row = 0; row < dimension; row++) {
-      char[] rowData = new char[dimension];
-      for (int column = 0; column < dimension; column++) {
-        rowData[column] = (char) (row * dimension + column + 1);
-      }
-      data[row] = rowData;
-    }
-    data[dimension - 1][dimension - 1] = 0;
-    return new Board(data, 0, null);
-  }
-  
   public int dimension() {
     return blocks.length;
   }
   
   public int hamming() {
     if (hammingValue < 0) {
-      hammingValue = moves;
+      hammingValue = 0;
       int dimension = dimension();
       for (int row = 0; row < dimension; row++) {
         for (int column = 0; column < dimension; column++) {
-          char expected = goal.blocks[row][column];
+          final char expected;
+          if (row == dimension - 1 && column == dimension - 1) {
+            expected = 0;
+          }
+          else {
+            expected = (char) (row * dimension + column + 1);
+          }
           if (expected != 0 && expected != blocks[row][column]) {
             hammingValue++;
           }
@@ -71,12 +60,19 @@ public class Board {
   
   public int manhattan() {
     if (manhattanValue < 0) {
-      manhattanValue = moves;
+      manhattanValue = 0;
       int dimension = dimension();
       for (int row = 0; row < dimension; row++) {
         for (int column = 0; column < dimension; column++) {
           char actual = blocks[row][column];
-          if (actual != 0 && goal.blocks[row][column] != actual) {
+          final char expected;
+          if (row == dimension - 1 && column == dimension - 1) {
+            expected = 0;
+          }
+          else {
+            expected = (char) (row * dimension + column + 1);
+          }
+          if (actual != 0 && expected != actual) {
             manhattanValue += Math.abs(row - (actual - 1) / dimension);
             manhattanValue += Math.abs(column - (actual - 1) % dimension);
           }
@@ -87,7 +83,7 @@ public class Board {
   }
   
   public boolean isGoal() {
-    return equals(goal);
+    return manhattan() == 0;
   }
   public Board twin() {
     char[][] twinBlocks = copy(blocks);
@@ -98,11 +94,11 @@ public class Board {
           char t = rowData[j];
           rowData[j] = rowData[j - 1];
           rowData[j - 1] = t;
-          return new Board(twinBlocks, moves, goal);
+          return new Board(twinBlocks);
         }
       }
     }
-    return new Board(twinBlocks, moves, goal);
+    return new Board(twinBlocks);
   }
 
   private static char[][] copy(char[][] src) {
@@ -138,7 +134,7 @@ public class Board {
             char[][] neighborBlocks = copy(blocks);
             neighborBlocks[row][column] = blocks[row - 1][column];
             neighborBlocks[row - 1][column] = 0;
-            result.enqueue(new Board(neighborBlocks, moves + 1, goal));
+            result.enqueue(new Board(neighborBlocks));
           }
           
           // Left.
@@ -146,7 +142,7 @@ public class Board {
             char[][] neighborBlocks = copy(blocks);
             neighborBlocks[row][column] = blocks[row][column + 1];
             neighborBlocks[row][column + 1] = 0;
-            result.enqueue(new Board(neighborBlocks, moves + 1, goal));
+            result.enqueue(new Board(neighborBlocks));
           }
           
           // Up.
@@ -154,7 +150,7 @@ public class Board {
             char[][] neighborBlocks = copy(blocks);
             neighborBlocks[row][column] = blocks[row + 1][column];
             neighborBlocks[row + 1][column] = 0;
-            result.enqueue(new Board(neighborBlocks, moves + 1, goal));
+            result.enqueue(new Board(neighborBlocks));
           }
 
           // Right.
@@ -162,7 +158,7 @@ public class Board {
             char[][] neighborBlocks = copy(blocks);
             neighborBlocks[row][column] = blocks[row][column - 1];
             neighborBlocks[row][column - 1] = 0;
-            result.enqueue(new Board(neighborBlocks, moves + 1, goal));
+            result.enqueue(new Board(neighborBlocks));
           }
           return result;
         }

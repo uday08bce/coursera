@@ -1,4 +1,5 @@
 import java.util.Comparator;
+import java.util.Iterator;
 
 /**
  * @author Denis Zhdanov
@@ -6,69 +7,94 @@ import java.util.Comparator;
  */
 public class Solver {
 
-  private static final Comparator<Board> COMPARATOR = new Comparator<Board>() {
-    @Override
-    public int compare(Board o1, Board o2) {
-      return o1.hamming() + o1.manhattan() - o2.hamming() - o2.manhattan();
-    }
-  };
+  private static final Comparator<SearchNode> COMPARATOR =
+    new Comparator<SearchNode>()
+    {
+      @Override
+      public int compare(SearchNode o1, SearchNode o2) {
+        return o1.moves + o1.board.manhattan() - o2.moves - o2.board.manhattan();
+      }
+    };
 
-  private Queue<Board> baseTrace = new Queue<Board>();
+  private Queue<Board> resultTrace;
 
   public Solver(Board initial) {
-    MinPQ<Board> basePq = new MinPQ<Board>(COMPARATOR);
-    basePq.insert(initial);
-    MinPQ<Board> twinPq = new MinPQ<Board>(COMPARATOR);
-    twinPq.insert(initial.twin());
-    Queue<Board> twinTrace = new Queue<Board>();
+    MinPQ<SearchNode> basePq = new MinPQ<SearchNode>(COMPARATOR);
+    basePq.insert(new SearchNode(null, initial, 0));
+    MinPQ<SearchNode> twinPq = new MinPQ<SearchNode>(COMPARATOR);
+    twinPq.insert(new SearchNode(null, initial.twin(), 0));
+    SearchNode result;
     
     while (true) {
-      Board base = basePq.delMin();
-      if (base.isGoal()) {
-        baseTrace.enqueue(base);
+      SearchNode base = basePq.delMin();
+      //System.out.println("---------------------------------------");
+      //System.out.println("Choosing the board below");
+      //System.out.println(base);
+      if (base.board.isGoal()) {
+        result = base;
         break;
       }
 
-      Board twin = twinPq.delMin();
-      if (twin.isGoal()) {
-        baseTrace = null;
+      SearchNode twin = twinPq.delMin();
+      if (twin.board.isGoal()) {
+        result = null;
         break;
       }
       
-      addNeighbors(base, basePq, baseTrace);
-      addNeighbors(twin, twinPq, twinTrace);
-      baseTrace.enqueue(base);
-      twinTrace.enqueue(twin);
+      addNeighbors(base, basePq);
+      addNeighbors(twin, twinPq);
+      //printQueue(basePq);
+    }
+    
+    if (result != null) {
+      Stack<Board> tmp = new Stack<Board>();
+      for (SearchNode n = result; n != null; n = n.previous) {
+        tmp.push(n.board);
+      }
+      
+      resultTrace = new Queue<Board>();
+      while (!tmp.isEmpty()) {
+        resultTrace.enqueue(tmp.pop());
+      }
     }
   }
 
-  private void addNeighbors(Board board, MinPQ<Board> queue, Queue<Board> trace) {
-    Board previous = null;
-    if (!trace.isEmpty()) {
-      previous = trace.peek();
+  private void printQueue(MinPQ<SearchNode> queue) {
+    System.out.println("-------------------> Queue: <---------------------------");
+    for (Iterator<SearchNode> iterator = queue.iterator(); iterator.hasNext();) {
+      SearchNode next = iterator.next();
+      System.out.println("manhattan = " + (next.board.manhattan() + next.moves));
+      System.out.println(next);
     }
-    for (Board neighbor : board.neighbors()) {
+  }
+
+  private void addNeighbors(SearchNode node, MinPQ<SearchNode> queue) {
+    Board previous = null;
+    if (node.previous != null) {
+      previous = node.previous.board;
+    }
+    for (Board neighbor : node.board.neighbors()) {
       if (!neighbor.equals(previous)) {
-        queue.insert(neighbor);
+        queue.insert(new SearchNode(node, neighbor, node.moves + 1));
       }
     }
   }
   
   public boolean isSolvable() {
-    return baseTrace != null;
+    return resultTrace != null;
   }
   
   public int moves() {
-    if (baseTrace == null) {
+    if (resultTrace == null) {
       return -1;
     }
     else {
-      return baseTrace.size() - 1;
+      return resultTrace.size() - 1;
     }
   }
   
   public Iterable<Board> solution() {
-    return baseTrace;
+    return resultTrace;
   }
   
   public static void main(String[] args) {
@@ -91,6 +117,24 @@ public class Solver {
       StdOut.println("Minimum number of moves = " + solver.moves());
       for (Board board : solver.solution())
         StdOut.println(board);
+    }
+  }
+  
+  private static class SearchNode {
+
+    private final SearchNode previous;
+    private final Board      board;
+    private final int        moves;
+
+    SearchNode(SearchNode previous, Board board, int moves) {
+      this.previous = previous;
+      this.board = board;
+      this.moves = moves;
+    }
+
+    @Override
+    public String toString() {
+      return board.toString();
     }
   }
 }
