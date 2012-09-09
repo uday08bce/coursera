@@ -77,8 +77,8 @@ public class Board {
         for (int column = 0; column < dimension; column++) {
           char actual = blocks[row][column];
           if (actual != 0 && goal.blocks[row][column] != actual) {
-            hammingValue += Math.abs(row - actual / dimension);
-            hammingValue += Math.abs(column - actual % dimension + 1);
+            manhattanValue += Math.abs(row - (actual - 1) / dimension);
+            manhattanValue += Math.abs(column - (actual - 1) % dimension);
           }
         }
       }
